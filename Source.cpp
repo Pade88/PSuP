@@ -4,10 +4,12 @@
 #define BAUD 9600
 #include <stdio.h>
 #include <string.h>
+extern int selectedEUSARTPort = 1;
+
 
 /*
 @Author: OPA
-@Revision: 1.0.0.1 (Non functional changes since 1.0.0.0)
+@Revision: 1.0.0.2 (Added bit masking in EUSART_set() and Non functional changes in EUSART_send_char())
 @Date: 2.0.2020
 @Parameters: Integer conf_EUSART setting UART that follow to be configured <<Range set for only 1 or 2 values>>
 @Inernal pin configuration: 
@@ -19,50 +21,37 @@
 			TXEN - Transmit Enable bit <<1 for enable>> | <<0 for disbale>>
  @Description: Function configure bits for  EUSART COM port 1 or 2  if given parameter is consistent (1 || 2 ).
  *             If parameters are inconsistent, ASA disable EUSART Communication.
+ @Bit Masking & Filtering
+ *          TXSTA 0xA4 = 10100100 -> Enable bits 2, 5, 7 with 1, and also bit SYNC (no. 4) with 0!
+ *          BAUDCON 0x00 = 00000000 -> Disable all bits.
+ *          RCSTA1 = 0x80 = 10000000 -> Enable bit 7 (SPEN)
 */
 void EUSART_set(int conf_EUSART)
 {
     if (conf_EUSART == 1)
     {
-        TXSTA1bits.CSRC = 1;
+        TXSTA1 = 0xA4;
         SPBRG1 = (( XTAL_FREQ/16 ) / BAUD) - 1;  
-        TXSTA1bits.BRGH = 1;
-        BAUDCON1bits.BRG16 = 0;
-        TXSTA1bits.SYNC = 0;   
-        RCSTA1bits.SPEN = 1;   
-        TXSTA1bits.TXEN = 1; 
+        BAUDCON1 = 0x00;
+        RCSTA1 = 0x80;   
     }
     else if(conf_EUSART == 2)
     {
-        TXSTA2bits.CSRC = 1;
+        TXSTA2 = 0xA4;
         SPBRG2 = (( XTAL_FREQ/16 ) / BAUD) - 1;  
-        TXSTA2bits.BRGH = 1;
-        BAUDCON2bits.BRG16 = 0;
-        TXSTA2bits.SYNC = 0;   
-        RCSTA2bits.SPEN = 1;   
-        TXSTA2bits.TXEN = 1;   
+        BAUDCON2 = 0x00;
+        RCSTA2 = 0x80; 
     }
     else
     {  
-        TXSTA1bits.CSRC = 0;
-        TXSTA1bits.BRGH = 0;
-        BAUDCON1bits.BRG16 = 0;
-        TXSTA1bits.SYNC = 0;   
-        RCSTA1bits.SPEN = 0;   
-        TXSTA1bits.TXEN = 0; 
-        TXSTA2bits.CSRC = 0;
-        TXSTA2bits.BRGH = 0;
-        BAUDCON2bits.BRG16 = 0;
-        TXSTA2bits.SYNC = 0;   
-        RCSTA2bits.SPEN = 0;   
-        TXSTA2bits.TXEN = 0;
+        TXSTA1 = TXSTA2 = RCSTA1 = RCSTA2 = 0x00;
     }
 }
 
 
 /*
  @Author: OPA
- @Revision 1.0.0.0 (New Entry)
+ @Revision 1.0.0.1 Changed status of selectedEUSARTPort to extern int. No declaration needed anymore.
  @Date 11.01.2020
  @Parameters: char that follows to be transmitted via EUSART.
  @Description: ASA use and external integer representing EUSART port number that should transmit.
@@ -70,7 +59,6 @@ void EUSART_set(int conf_EUSART)
  */
 void EUSART_send_char(char c)
 {
-    extern int selectedEUSARTPort;
     if(selectedEUSARTPort == 1)
     {
         TXREG1 = c;
@@ -103,8 +91,6 @@ void EUSART_send_String(char *c)
     }
     EUSART_send_char(0x20);
 }
-
-extern int selectedEUSARTPort = 1;
 
 void main(void)  
 {  
