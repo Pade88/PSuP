@@ -10,7 +10,7 @@ extern int selectedEUSARTPort = 1;
 /*
 @Author: OPA
 @Revision: 1.0.0.2 (Added bit masking in EUSART_set() and Non functional changes in EUSART_send_char())
-@Date: 2.0.2020
+@Date: 16.01.2020
 @Parameters: Integer conf_EUSART setting UART that follow to be configured <<Range set for only 1 or 2 values>>
 @Inernal pin configuration: 
 			CSRC - Mode selector <<1 for Master>> | <<0 for Slave>>
@@ -52,7 +52,7 @@ void EUSART_set(int conf_EUSART)
 /*
  @Author: OPA
  @Revision 1.0.0.1 Changed status of selectedEUSARTPort to extern int. No declaration needed anymore.
- @Date 11.01.2020
+ @Date 16.01.2020
  @Parameters: char that follows to be transmitted via EUSART.
  @Description: ASA use and external integer representing EUSART port number that should transmit.
  *             ASA send character and apply a delay for consistency.
@@ -92,6 +92,11 @@ void EUSART_send_String(char *c)
     EUSART_send_char(0x20);
 }
 
+/*
+ @Author: OPA
+ @Revision 1.0.0.0
+ @Date 11.01.2020
+ */
 void main(void)  
 {  
     int loopCounter = 0;
